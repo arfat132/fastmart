@@ -16,7 +16,12 @@ export default function CartScreen() {
     const deleteItem = (item) => {
         dispatch({ type: 'CART_REMOVE_ITEM', payload: item });
     };
-    4
+
+    const updateCartQuantity = (item, qty) => {
+        const quantity = Number(qty);
+        dispatch({ type: 'CART_ADD_ITEM', payload: { ...item, quantity } });
+    };
+
     return (
         <Layout title="Shopping Cart">
             <h1 className="mb-4 text-xl font-bold">Shopping Cart</h1>
@@ -52,7 +57,20 @@ export default function CartScreen() {
                                                 </a>
                                             </Link>
                                         </td>
-                                        <td className="p-3 text-center font-bold">{item.quantity}</td>
+                                        <td className="p-3 text-center font-bold">
+                                            <select
+                                                value={item.quantity}
+                                                onChange={(e) =>
+                                                    updateCartQuantity(item, e.target.value)
+                                                }
+                                            >
+                                                {[...Array(item.stock).keys()].map((x) => (
+                                                    <option key={x + 1} value={x + 1}>
+                                                        {x + 1}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </td>
                                         <td className="p-3 text-right font-bold">${item.price}</td>
                                         <td className="p-3 text-center">
                                             <button onClick={() => deleteItem(item)}>
