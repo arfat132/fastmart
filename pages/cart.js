@@ -1,12 +1,12 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import React, { useContext } from 'react';
 import { TrashIcon } from '@heroicons/react/outline';
 import { useRouter } from 'next/router';
 import { Store } from '../utils/store';
 import Layout from '../components/Layout';
+import dynamic from 'next/dynamic';
 
-export default function CartScreen() {
+function CartScreen() {
     const router = useRouter();
     const { state, dispatch } = useContext(Store);
     const {
@@ -111,3 +111,5 @@ export default function CartScreen() {
         </Layout>
     );
 }
+
+export default dynamic(() => Promise.resolve(CartScreen), { ssr: false });
