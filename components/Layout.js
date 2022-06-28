@@ -1,8 +1,13 @@
 import Head from 'next/head';
-import React from 'react';
+import React, { useContext } from 'react';
 import Link from 'next/link'
+import { Store } from '../utils/store';
 
-export default function Layout ({ title, children }) {
+export default function Layout({ title, children }) {
+
+    const { state, dispatch } = useContext(Store);
+    const { cart } = state;
+
     return (
         <>
             <Head>
@@ -17,7 +22,14 @@ export default function Layout ({ title, children }) {
                             <span class="ml-3 text-xl">Fastmart</span>
                         </Link>
                         <nav class="md:ml-auto flex flex-wrap items-center text-base justify-center">
-                            <Link href="/cart" ><a class="mr-5 hover:text-gray-900">Cart</a></Link>
+                            <Link href="/cart" ><a class="mr-5 hover:text-gray-900">Cart
+                                {cart.cartItems.length > 0 && (
+                                    <span className='text-black'>
+                                        {cart.cartItems.reduce((a, c) => a + c.quantity, 0)}
+                                    </span>
+                                )}
+                            </a>
+                            </Link>
                             <Link href="/login"><a class="mr-5 hover:text-gray-900">Login</a></Link>
                         </nav>
                     </div>
