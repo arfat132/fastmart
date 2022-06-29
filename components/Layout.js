@@ -23,7 +23,7 @@ export default function Layout({ title, children }) {
         dispatch({ type: 'CART_RESET' });
         signOut({ callbackUrl: '/login' });
     };
-    
+
     return (
         <>
             <Head>
@@ -58,14 +58,14 @@ export default function Layout({ title, children }) {
                                         </DropdownLink></li>
                                         <li><DropdownLink href="/order-history">
                                             Order History
-                                            </DropdownLink></li>
-                                            <li><a
-                        className="dropdown-link"
-                        href="#"
-                        onClick={logout}
-                      >
-                        Logout
-                      </a></li>
+                                        </DropdownLink></li>
+                                        <li><a
+                                            className="dropdown-link"
+                                            href="#"
+                                            onClick={logout}
+                                        >
+                                            Logout
+                                        </a></li>
                                     </ul>
                                 </div>
                             ) : (
