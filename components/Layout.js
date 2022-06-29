@@ -2,12 +2,16 @@ import Head from 'next/head';
 import React, { useContext, useEffect, useState } from 'react';
 import Link from 'next/link'
 import { Store } from '../utils/store';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useSession } from 'next-auth/react';
 
 export default function Layout({ title, children }) {
+    const { status, data: session } = useSession();
     const { state } = useContext(Store);
     const { cart } = state;
     const [cartItemsCount, setCartItemsCount] = useState(0);
-    
+
     useEffect(() => {
         setCartItemsCount(cart.cartItems.reduce((a, c) => a + c.quantity, 0));
     }, [cart.cartItems]);
@@ -19,6 +23,7 @@ export default function Layout({ title, children }) {
                 <meta name="description" content="Ecommerce website" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
+            <ToastContainer position='top-center' limit={1} />
             <div className=''>
                 <header className="text-gray-600 body-font shadow-lg">
                     <div className="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center">
@@ -34,7 +39,15 @@ export default function Layout({ title, children }) {
                                 )}
                             </a>
                             </Link>
-                            <Link href="/login"><a className="mr-5 hover:text-teal-500">Login</a></Link>
+                            {status === 'loading' ? (
+                                'Loading'
+                            ) : session?.user ? (
+                                session.user.name
+                            ) : (
+                                <Link href="/login">
+                                    <a className="p-2">Login</a>
+                                </Link>
+                            )}
                         </nav>
                     </div>
                 </header>
