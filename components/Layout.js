@@ -4,11 +4,13 @@ import Link from 'next/link'
 import { Store } from '../utils/store';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
+import DropdownLink from './DropdownLink';
+import Cookies from 'js-cookie'
 
 export default function Layout({ title, children }) {
     const { status, data: session } = useSession();
-    const { state } = useContext(Store);
+    const { state, dispatch } = useContext(Store);
     const { cart } = state;
     const [cartItemsCount, setCartItemsCount] = useState(0);
 
@@ -16,6 +18,12 @@ export default function Layout({ title, children }) {
         setCartItemsCount(cart.cartItems.reduce((a, c) => a + c.quantity, 0));
     }, [cart.cartItems]);
 
+    const logout = () => {
+        Cookies.remove('cart');
+        dispatch({ type: 'CART_RESET' });
+        signOut({ callbackUrl: '/login' });
+    };
+    
     return (
         <>
             <Head>
@@ -42,10 +50,27 @@ export default function Layout({ title, children }) {
                             {status === 'loading' ? (
                                 'Loading'
                             ) : session?.user ? (
-                                session.user.name
+                                <div className="dropdown dropdown-end">
+                                    <label tabIndex="0" className="">{session.user.name}</label>
+                                    <ul tabIndex="0" className="dropdown-content bg-slate-200 menu mt-8 p-2 shadow bg-none rounded-box w-52">
+                                        <li><DropdownLink href="/profile">
+                                            Profile
+                                        </DropdownLink></li>
+                                        <li><DropdownLink href="/order-history">
+                                            Order History
+                                            </DropdownLink></li>
+                                            <li><a
+                        className="dropdown-link"
+                        href="#"
+                        onClick={logout}
+                      >
+                        Logout
+                      </a></li>
+                                    </ul>
+                                </div>
                             ) : (
                                 <Link href="/login">
-                                    <a className="p-2">Login</a>
+                                    <a className="p-2 cursor-pointer">Login</a>
                                 </Link>
                             )}
                         </nav>
