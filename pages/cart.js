@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { Store } from '../utils/store';
 import Layout from '../components/Layout';
 import dynamic from 'next/dynamic';
-
+import Image from 'next/image';
 function CartScreen() {
     const router = useRouter();
     const { state, dispatch } = useContext(Store);
@@ -47,11 +47,11 @@ function CartScreen() {
                                         <td>
                                             <Link href={`/product/${item.slug}`}>
                                                 <a className="flex items-center py-2 font-bold">
-                                                    <img
+                                                    <Image
                                                         src={item.img}
                                                         alt={item.name}
                                                         className="w-24 h-24 mr-3"
-                                                    />
+                                                    ></Image>
                                                     &nbsp;
                                                     {item.name}
                                                 </a>
@@ -98,7 +98,7 @@ function CartScreen() {
                             </li>
                             <li>
                                 <button
-                                    onClick={() => router.push('/shipping')}
+                                    onClick={() => router.push('login?redirect=/shipping')}
                                     className="w-full bg-teal-500 text-white py-3 font-bold"
                                 >
                                     Check Out
