@@ -2,115 +2,108 @@
 import axios from 'axios';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import Cookies from 'js-cookie';
-import React, { useContext, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
-import CheckoutWizard from '../components/CheckoutWizard';
-import Layout from '../components/Layout';
-import { getError } from '../utils/error';
-import { Store } from '../utils/store';
+import { useEffect, useReducer } from 'react';
+import Layout from '../../components/Layout';
+import { getError } from '../../utils/error';
 
+function reducer(state, action) {
+    switch (action.type) {
+        case 'FETCH_REQUEST':
+            return { ...state, loading: true, error: '' };
+        case 'FETCH_SUCCESS':
+            return { ...state, loading: false, order: action.payload, error: '' };
+        case 'FETCH_FAIL':
+            return { ...state, loading: false, error: action.payload };
+        default:
+            state;
+    }
+}
+function OrderScreen() {
+    // order/:id
+    const { query } = useRouter();
+    const orderId = query.id;
 
-export default function PlaceOrderScreen() {
-    const { state, dispatch } = useContext(Store);
-    const { cart } = state;
-    const { cartItems, shippingAddress, paymentMethod } = cart;
-
-    const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100;
-
-    const itemsPrice = round2(
-        cartItems.reduce((a, c) => a + c.quantity * c.price, 0)
-    ); // 123.4567 => 123.46
-
-    const shippingPrice = itemsPrice > 200 ? 0 : 15;
-    const taxPrice = round2(itemsPrice * 0.15);
-    const totalPrice = round2(itemsPrice + shippingPrice + taxPrice);
-
-    const router = useRouter();
+    const [{ loading, error, order }, dispatch] = useReducer(reducer, {
+        loading: true,
+        order: {},
+        error: '',
+    });
     useEffect(() => {
-        if (!paymentMethod) {
-            router.push('/payment');
+        const fetchOrder = async () => {
+            try {
+                dispatch({ type: 'FETCH_REQUEST' });
+                const { data } = await axios.get(`/api/orders/${orderId}`);
+                dispatch({ type: 'FETCH_SUCCESS', payload: data });
+            } catch (err) {
+                dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
+            }
+        };
+        if (!order._id || (order._id && order._id !== orderId)) {
+            fetchOrder();
         }
-    }, [paymentMethod, router]);
-
-    const [loading, setLoading] = useState(false);
-
-    const placeOrderHandler = async () => {
-        try {
-            setLoading(true);
-            const { data } = await axios.post('/api/orders', {
-                orderItems: cartItems,
-                shippingAddress,
-                paymentMethod,
-                itemsPrice,
-                shippingPrice,
-                taxPrice,
-                totalPrice,
-            });
-            setLoading(false);
-            dispatch({ type: 'CART_CLEAR_ITEMS' });
-            Cookies.set(
-                'cart',
-                JSON.stringify({
-                    ...cart,
-                    cartItems: [],
-                })
-            );
-            router.push(`/order/${data._id}`);
-        } catch (err) {
-            setLoading(false);
-            toast.error(getError(err));
-        }
-    };
+    }, [order, orderId]);
+    const {
+        shippingAddress,
+        paymentMethod,
+        orderItems,
+        itemsPrice,
+        taxPrice,
+        shippingPrice,
+        totalPrice,
+        isPaid,
+        paidAt,
+        isDelivered,
+        deliveredAt,
+    } = order;
 
     return (
-        <Layout title="Place Order">
-            <CheckoutWizard activeStep={2} />
-            {cartItems.length === 0 ? (
-                <div>
-                    Cart is empty. <Link href="/">Go shopping</Link>
-                </div>
+        <Layout title={`Order ${orderId}`}>
+            <h1 className="mb-4 text-xl">{`Order ${orderId}`}</h1>
+            {loading ? (
+                <div>Loading...</div>
+            ) : error ? (
+                <div className="my-3 rounded-lg bg-red-100 p-3 text-red-700">{error}</div>
             ) : (
-                <div className="grid md:grid-cols-2 grid-cols-1 lg:gap-5">
+                <div className="grid md:grid-cols-2 md:gap-12">
                     <div className="overflow-x-auto">
-                        <div className="p-5 shadow-md border">
+                        <div className="p-5 shadow-md border mb-12">
                             <h2 className="mb-2 text-lg font-bold">Shipping Address</h2>
                             <div>
                                 {shippingAddress.fullName}, {shippingAddress.address},{' '}
                                 {shippingAddress.city}, {shippingAddress.postalCode},{' '}
                                 {shippingAddress.country}
                             </div>
-                            <div className="mt-2 font-bold">
-                                <Link href="/shipping">Edit</Link>
-                            </div>
+                            {isDelivered ? (
+                                <div className="my-3 rounded-lg bg-green-100 p-3 text-green-700">Delivered at {deliveredAt}</div>
+                            ) : (
+                                <div className="my-3 rounded-lg bg-red-100 p-3 text-red-700">Not delivered</div>
+                            )}
                         </div>
-                        <div className="p-5 shadow-md border mt-12">
+
+                        <div className="p-5 shadow-md border">
                             <h2 className="mb-2 text-lg font-bold">Payment Method</h2>
                             <div>{paymentMethod}</div>
-                            <div className="mt-2 font-bold">
-                                <Link href="/payment">Edit</Link>
-                            </div>
+                            {isPaid ? (
+                                <div className="my-3 rounded-lg bg-green-100 p-3 text-green-700">Paid at {paidAt}</div>
+                            ) : (
+                                <div className="my-3 rounded-lg bg-red-100 p-3 text-red-700">Not paid</div>
+                            )}
                         </div>
                     </div>
-                    <div className="px-12 py-5 shadow-md border">
-                        <div className="overflow-x-auto">
-                            <div className='flex justify-between'>
-                                <h2 className="mb-2 text-lg font-bold">Order Items</h2>
-                                <div className='font-bold mt-2 text-lg'>
-                                    <Link href="/cart">Edit</Link>
-                                </div>
-                            </div>
+                    <div className='py-5 shadow-md border'>
+                        <div className="overflow-x-auto p-5">
+                            <h2 className="mb-2 text-lg font-bold">Order Items</h2>
                             <table className="min-w-full">
                                 <thead className="border-b">
                                     <tr>
-                                        <th className="py-5 text-left">Item</th>
-                                        <th className="py-5 text-right">Quantity</th>
-                                        <th className="py-5 text-right">Price</th>
-                                        <th className="py-5 text-right">Subtotal</th>
+                                        <th className="px-5 text-left">Item</th>
+                                        <th className=" p-5 text-right">Quantity</th>
+                                        <th className="p-5 text-right">Price</th>
+                                        <th className="p-5 text-right">Subtotal</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {cartItems.map((item) => (
+                                    {orderItems.map((item) => (
                                         <tr key={item._id} className="border-b">
                                             <td>
                                                 <Link href={`/product/${item.slug}`}>
@@ -135,7 +128,7 @@ export default function PlaceOrderScreen() {
                                 </tbody>
                             </table>
                         </div>
-                        <div className="mt-5">
+                        <div className="card p-5">
                             <h2 className="mb-2 text-lg font-bold">Order Summary</h2>
                             <ul>
                                 <li>
@@ -143,7 +136,7 @@ export default function PlaceOrderScreen() {
                                         <div>Items</div>
                                         <div>${itemsPrice}</div>
                                     </div>
-                                </li>
+                                </li>{' '}
                                 <li>
                                     <div className="mb-2 flex justify-between font-semibold">
                                         <div>Tax</div>
@@ -162,15 +155,6 @@ export default function PlaceOrderScreen() {
                                         <div>${totalPrice}</div>
                                     </div>
                                 </li>
-                                <li>
-                                    <button
-                                        disabled={loading}
-                                        onClick={placeOrderHandler}
-                                        className="bg-teal-500 py-2.5 my-4 text-white font-bold w-full"
-                                    >
-                                        {loading ? 'Loading...' : 'Place Order'}
-                                    </button>
-                                </li>
                             </ul>
                         </div>
                     </div>
@@ -180,4 +164,5 @@ export default function PlaceOrderScreen() {
     );
 }
 
-PlaceOrderScreen.auth = true;
+OrderScreen.auth = true;
+export default OrderScreen;
