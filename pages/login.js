@@ -53,7 +53,7 @@ export default function LoginScreen() {
                                 message: 'Please enter valid email',
                             },
                         })}
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5  " placeholder="name@flowbite.com" />
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500  block w-full pl-10 p-2.5  " placeholder="name@flowbite.com" />
                     {errors.email && (
                         <div className="text-red-500">{errors.email.message}</div>
                     )}
@@ -72,7 +72,7 @@ export default function LoginScreen() {
                             required: 'Please enter password',
                             minLength: { value: 6, message: 'password is more than 5 chars' },
                         })}
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5  " placeholder="name@flowbite.com" />
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500  block w-full pl-10 p-2.5  " placeholder="name@flowbite.com" />
                     {errors.password && (
                         <div className="text-red-500 ">{errors.password.message}</div>
                     )}
@@ -80,7 +80,7 @@ export default function LoginScreen() {
                 <button type="submit" className="text-white bg-teal-500 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center">Submit</button>
                 <div className="mt-3">
                     Don&apos;t have an account? &nbsp;
-                    <Link href="register">Register</Link>
+                    <Link href={`/register?redirect=${redirect || '/'}`}>Register</Link>
                 </div>
             </form>
         </Layout>
